@@ -26,8 +26,9 @@ public class Compression {
                 int len;
                 Haffman haffman = new Haffman();
                 while ((len = bufferedInputStream.read(buffer)) != -1) {
-
+                    haffman.generateFrequency(buffer);
                 }
+                haffman.structureHaffmanTree();
             }
             //解压
             case 1 -> {
