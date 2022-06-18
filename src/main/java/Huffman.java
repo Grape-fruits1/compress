@@ -10,25 +10,25 @@ import java.util.TreeMap;
  * @description TODO 哈夫曼算法
  * @date 2022/6/17 22:53
  */
-public class Haffman {
-    HaffmanTree mainTree = null;
+public class Huffman {
+    HuffmanTree mainTree = null;
     HashMap<Byte, Integer> frequency = new HashMap<>();
-    class HaffmanTree {
+    class HuffmanTree {
         //叶子节点符号
         Byte data = null;
         //节点权重
         int freq;
         //左子树
-        HaffmanTree leftSubtree = null;
+        HuffmanTree leftSubtree = null;
         //右子树
-        HaffmanTree rightSubtree = null;
+        HuffmanTree rightSubtree = null;
 
         /**
          * 叶子结点构造方法
          * @param data
          * @param freq
          */
-        HaffmanTree(Byte data, int freq) {
+        HuffmanTree(Byte data, int freq) {
             this.data = data;
             this.freq = freq;
         }
@@ -38,7 +38,7 @@ public class Haffman {
          * @param leftSubtree
          * @param rightSubtree
          */
-        HaffmanTree(HaffmanTree leftSubtree, HaffmanTree rightSubtree) {
+        HuffmanTree(HuffmanTree leftSubtree, HuffmanTree rightSubtree) {
             this.leftSubtree = leftSubtree;
             this.rightSubtree = rightSubtree;
             freq = leftSubtree.freq + rightSubtree.freq;
@@ -61,7 +61,7 @@ public class Haffman {
     /**
      * 构造哈夫曼树
      */
-    public void structureHaffmanTree() {
+    public void structureHuffmanTree() {
         //按频率大小排列数据
         TreeMap<Integer, Object> comparedNode = new TreeMap<>();
         for (Map.Entry<Byte, Integer> entry : frequency.entrySet()) {
@@ -82,13 +82,13 @@ public class Haffman {
             }
         }
         //贪心算法构造哈夫曼树
-        ArrayList<HaffmanTree> forest = new ArrayList<>();
+        ArrayList<HuffmanTree> forest = new ArrayList<>();
         for (Map.Entry<Integer, Object> entry : comparedNode.entrySet()) {
             if (entry.getValue() instanceof Byte) {
-                forest.add(new HaffmanTree((Byte) entry.getValue(), entry.getKey()));
+                forest.add(new HuffmanTree((Byte) entry.getValue(), entry.getKey()));
             } else {
                 for (Byte b : (ArrayList<Byte>) entry.getValue()) {
-                    forest.add(new HaffmanTree(b, entry.getKey()));
+                    forest.add(new HuffmanTree(b, entry.getKey()));
                 }
             }
         }
@@ -100,14 +100,24 @@ public class Haffman {
         if (forest.size() > 0) {
             for (int i = 0; i < forest.size() - 1; i++) {
                 if (mainTree.freq < forest.get(1).freq) {
-                    mainTree = new HaffmanTree(mainTree, forest.get(0));
+                    mainTree = new HuffmanTree(mainTree, forest.get(0));
                     forest.remove(0);
                 } else {
-                    forest.set(0, new HaffmanTree(forest.get(0), forest.get(1)));
+                    forest.set(0, new HuffmanTree(forest.get(0), forest.get(1)));
                     forest.remove(1);
                 }
             }
-            mainTree = new HaffmanTree(mainTree, forest.get(0));
+            mainTree = new HuffmanTree(mainTree, forest.get(0));
         }
+    }
+
+    /**
+     * 进行哈夫曼编码，前序遍历哈夫曼数
+     */
+    public byte[] huffmanEncoding(byte[] buffer) {
+        return new byte[0];
+    }
+    public byte[] huffmanDecoding(byte[] buffer) {
+        return new byte[0];
     }
 }

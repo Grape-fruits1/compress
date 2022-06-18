@@ -1,7 +1,4 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.HashMap;
+import java.io.*;
 import java.util.Scanner;
 
 /**
@@ -21,17 +18,68 @@ public class Compression {
         switch (scan.nextInt()) {
             //压缩
             case 0 -> {
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream("../resources/a.txt"));
-                byte[] buffer = new byte[100];
-                int len;
-                Haffman haffman = new Haffman();
-                while ((len = bufferedInputStream.read(buffer)) != -1) {
-                    haffman.generateFrequency(buffer);
+                String fileName = scan.next();
+                String outputFileName = fileName + ".comp";
+                File inputFile = new File(fileName);
+                File outputFile = new File(outputFileName);
+                if (inputFile.exists() && !outputFile.exists()) {
+                    try {
+                        outputFile.createNewFile();
+                        BufferedInputStream bufferedInputStream = new BufferedInputStream(new
+                                FileInputStream("../resources/" + fileName));
+                        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new
+                                FileOutputStream("../resources/" + outputFileName));
+                        byte[] buffer = new byte[100];
+                        Huffman huffman = new Huffman();
+                        while (bufferedInputStream.read(buffer) != -1) {
+                            huffman.generateFrequency(buffer);
+                        }
+                        huffman.structureHuffmanTree();
+                        while (bufferedInputStream.read(buffer) != -1) {
+                            bufferedOutputStream.write(huffman.huffmanEncoding(buffer));
+                        }
+                        bufferedOutputStream.close();
+                        bufferedInputStream.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                 }
-                haffman.structureHaffmanTree();
+
             }
             //解压
             case 1 -> {
+                String fileName = scan.next();
+                File inputFile = new File(fileName);
+                if (fileName.endsWith(".comp") && inputFile.exists()) {
+                    String outputFileName = fileName.substring(0,fileName.length() - 5);
+                    File outputFile = new File(outputFileName);
+                    if (!outputFile.exists()) {
+                        try {
+                            outputFile.createNewFile();
+                            BufferedInputStream bufferedInputStream = new BufferedInputStream(new
+                                    FileInputStream("../resources/" + fileName));
+                            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new
+                                    FileOutputStream("../resources/" + outputFileName));
+                            byte[] buffer = new byte[100];
+                            Huffman huffman = new Huffman();
+                            while (bufferedInputStream.read(buffer) != -1) {
+                                huffman.generateFrequency(buffer);
+                            }
+                            huffman.structureHuffmanTree();
+                            while (bufferedInputStream.read(buffer) != -1) {
+                                bufferedOutputStream.write(huffman.huffmanDecoding(buffer));
+                            }
+                            bufferedOutputStream.close();
+                            bufferedInputStream.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
+                } else {
+                    //抛出异常
+                }
 
             }
         }
