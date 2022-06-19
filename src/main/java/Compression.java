@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -19,23 +20,31 @@ public class Compression {
             //压缩
             case 0 -> {
                 String fileName = scan.next();
-                String outputFileName = fileName + ".comp";
-                File inputFile = new File(fileName);
-                File outputFile = new File(outputFileName);
+                String outputFileName = fileName + ".jaycomp";
+                File inputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + fileName);
+                File outputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + outputFileName);
                 if (inputFile.exists() && !outputFile.exists()) {
                     try {
                         outputFile.createNewFile();
-                        BufferedInputStream bufferedInputStream = new BufferedInputStream(new
-                                FileInputStream("../resources/" + fileName));
-                        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new
-                                FileOutputStream("../resources/" + outputFileName));
+                        BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(inputFile));
+                        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
                         byte[] buffer = new byte[100];
+                        Arrays.fill(buffer, (byte) -1);
                         Huffman huffman = new Huffman();
-                        while (bufferedInputStream.read(buffer) != -1) {
+                        int len;
+                        while ((len = bufferedInputStream.read(buffer)) != -1) {
+                            //文件为空时
+                            if (len == 0) {
+                                break;
+                            }
                             huffman.generateFrequency(buffer);
                         }
                         huffman.structureHuffmanTree();
                         while (bufferedInputStream.read(buffer) != -1) {
+                            //文件为空时
+                            if (len == 0) {
+                                break;
+                            }
                             bufferedOutputStream.write(huffman.huffmanEncoding(buffer));
                         }
                         bufferedOutputStream.close();
@@ -50,24 +59,31 @@ public class Compression {
             //解压
             case 1 -> {
                 String fileName = scan.next();
-                File inputFile = new File(fileName);
-                if (fileName.endsWith(".comp") && inputFile.exists()) {
+                File inputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + fileName);
+                if (fileName.endsWith(".jaycomp") && inputFile.exists()) {
                     String outputFileName = fileName.substring(0,fileName.length() - 5);
-                    File outputFile = new File(outputFileName);
+                    File outputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + outputFileName);
                     if (!outputFile.exists()) {
                         try {
                             outputFile.createNewFile();
-                            BufferedInputStream bufferedInputStream = new BufferedInputStream(new
-                                    FileInputStream("../resources/" + fileName));
-                            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new
-                                    FileOutputStream("../resources/" + outputFileName));
+                            BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(inputFile));
+                            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
                             byte[] buffer = new byte[100];
                             Huffman huffman = new Huffman();
-                            while (bufferedInputStream.read(buffer) != -1) {
+                            int len;
+                            while ((len = bufferedInputStream.read(buffer)) != -1) {
+                                //文件为空时
+                                if (len == 0) {
+                                    break;
+                                }
                                 huffman.generateFrequency(buffer);
                             }
                             huffman.structureHuffmanTree();
                             while (bufferedInputStream.read(buffer) != -1) {
+                                //文件为空时
+                                if (len == 0) {
+                                    break;
+                                }
                                 bufferedOutputStream.write(huffman.huffmanDecoding(buffer));
                             }
                             bufferedOutputStream.close();

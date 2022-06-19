@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author 17291
@@ -22,7 +19,8 @@ public class Huffman {
         HuffmanTree leftSubtree = null;
         //右子树
         HuffmanTree rightSubtree = null;
-
+        //双亲节点
+        HuffmanTree parentNode = null;
         /**
          * 叶子结点构造方法
          * @param data
@@ -42,6 +40,8 @@ public class Huffman {
             this.leftSubtree = leftSubtree;
             this.rightSubtree = rightSubtree;
             freq = leftSubtree.freq + rightSubtree.freq;
+            leftSubtree.parentNode = this;
+            rightSubtree.parentNode = this;
         }
     }
 
@@ -50,11 +50,11 @@ public class Huffman {
      * @param buffer
      */
     public void generateFrequency(byte[] buffer) {
-        for (byte b : buffer) {
-            if (frequency.containsKey(b)) {
-                frequency.put(b, frequency.get(b) + 1);
+        for (int i = 0; i < buffer.length && buffer[i] != -1; i++) {
+            if (frequency.containsKey(buffer[i])) {
+                frequency.put(buffer[i], frequency.get(buffer[i]) + 1);
             } else {
-                frequency.put(b, 1);
+                frequency.put(buffer[i], 1);
             }
         }
     }
@@ -112,9 +112,71 @@ public class Huffman {
     }
 
     /**
-     * 进行哈夫曼编码，前序遍历哈夫曼数
+     * 进行哈夫曼编码，广度优先遍历哈夫曼树
      */
     public byte[] huffmanEncoding(byte[] buffer) {
+        Queue<HuffmanTree> treeQueue = new LinkedList<>();
+        HuffmanTree nowNode = mainTree.rightSubtree;
+        treeQueue.add(nowNode);
+        treeQueue.add(mainTree.leftSubtree);
+        List<Byte> outputCode = new ArrayList<>();
+        //最终输出的不定长码文
+        List<Byte> outputCodeByte = new ArrayList<>();
+        outputCode.add((byte) 1);
+        for (byte b : buffer) {
+            //读到文件末位
+            if (b == -1) {
+                int i;
+                outputCodeByte.set(4, (byte) 0);
+                for (i = 0; i < outputCode.size(); i++) {
+                    if ((i / 8 - (i - 1) / 8) == 1) {
+                        outputCodeByte.set(i / 8 + 4, (byte) 0);
+                    }
+                    if (outputCode.get(i) == 0) {
+                        outputCodeByte.set(i / 8 + 4, (byte) (outputCodeByte.get(i / 8 + 4) & (~(0x1 << (7 - (i % 8))))));
+                    } else {
+                        outputCodeByte.set(i / 8 + 4, (byte) (outputCodeByte.get(i / 8 + 4) | (0x1 << (7 - (i % 8)))));
+                    }
+                }
+                //前4个字节指示空余位数
+                outputCodeByte.set(0, (byte) (((7 - (i % 8)) >> 24) & 0xFF));
+                outputCodeByte.set(1, (byte) (((7 - (i % 8)) >> 16) & 0xFF));
+                outputCodeByte.set(2, (byte) (((7 - (i % 8)) >> 8) & 0xFF));
+                outputCodeByte.set(3, (byte) ((7 - (i % 8)) & 0xFF));
+                //包装类List转基本类型原生数组
+                Byte[] outputCodeArray = new Byte[outputCodeByte.size()];
+                outputCodeArray = outputCodeByte.toArray(outputCodeArray);
+                byte[] outputCodeArrays = new byte[outputCodeByte.size()];
+                for (int j = 0; j < outputCodeArray.length; j++) {
+                    outputCodeArrays[j] = outputCodeArray[j];
+                }
+                return outputCodeArrays;
+            }
+            //广度优先遍历找到字符并回溯产生哈夫曼编码
+            while (nowNode != null) {
+                Stack<Byte> code = new Stack<>();
+                if (nowNode.data == b) {
+                    HuffmanTree backtrackingNode = nowNode;
+                    while (backtrackingNode.parentNode != null) {
+                        if (backtrackingNode.parentNode.leftSubtree == backtrackingNode) {
+                            code.add((byte) 0);
+                        } else {
+                            code.add((byte) 1);
+                        }
+                        backtrackingNode = backtrackingNode.parentNode;
+                    }
+                    while (!code.empty()) {
+                        outputCode.add(code.pop());
+                    }
+                }
+                if (nowNode.rightSubtree != null && nowNode.leftSubtree != null) {
+                    treeQueue.offer(nowNode.rightSubtree);
+                    treeQueue.offer(nowNode.leftSubtree);
+                }
+                treeQueue.poll();
+                nowNode = treeQueue.peek();
+            }
+        }
         return new byte[0];
     }
     public byte[] huffmanDecoding(byte[] buffer) {
