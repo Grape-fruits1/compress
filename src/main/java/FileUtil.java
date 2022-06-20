@@ -38,8 +38,8 @@ public class FileUtil {
      * @param b
      * @return
      */
-    public static double unsignedByteToInt(int[] b) {
-        double i = (b[0] & 0xFF) << 24;
+    public static long unsignedByteToInt(int[] b) {
+        long i = (b[0] & 0xFF) << 24;
         i += (b[1] & 0xFF) << 16;
         i += (b[2] & 0xFF) << 8;
         i += (b[3] & 0xFF);

@@ -40,6 +40,9 @@ public class Compression {
                             huffman.generateFrequency(buffer);
                         }
                         huffman.structureHuffmanTree();
+                        /**
+                         * 记得重置指针
+                         */
                         while (bufferedInputStream.read(buffer) != -1) {
                             //文件为空时
                             if (len == 0) {
@@ -69,7 +72,7 @@ public class Compression {
                 String fileName = scan.next();
                 File inputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + fileName);
                 if (fileName.endsWith(".jaycomp") && inputFile.exists()) {
-                    String outputFileName = fileName.substring(0,fileName.length() - 5);
+                    String outputFileName = fileName.substring(0,fileName.length() - 8);
                     File outputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + outputFileName);
                     if (!outputFile.exists()) {
                         try {
@@ -84,24 +87,35 @@ public class Compression {
                             mapNumByte[1] = bufferedInputStream.read();
                             mapNumByte[2] = bufferedInputStream.read();
                             mapNumByte[3] = bufferedInputStream.read();
-                            double mapNum = FileUtil.unsignedByteToInt(mapNumByte);
+                            long mapNum = FileUtil.unsignedByteToInt(mapNumByte);
+                            //读取频率表
+                            for (int i = 0; i < mapNum; i++) {
+                                byte key = (byte) bufferedInputStream.read();
+                                byte[] values = new byte[4];
+                                values[0] = (byte) bufferedInputStream.read();
+                                values[1] = (byte) bufferedInputStream.read();
+                                values[2] = (byte) bufferedInputStream.read();
+                                values[3] = (byte) bufferedInputStream.read();
+                                int value = FileUtil.byteToInt(values);
+                                huffman.frequency.put(key, value);
+                            }
+                            //生成哈夫曼树
+                            huffman.structureHuffmanTree();
                             int len;
+//                            while ((len = bufferedInputStream.read(buffer)) != -1) {
+//                                //文件为空时
+//                                if (len == 0) {
+//                                    break;
+//                                }
+//                            }
                             while ((len = bufferedInputStream.read(buffer)) != -1) {
                                 //文件为空时
                                 if (len == 0) {
                                     break;
                                 }
-                                huffman.generateFrequency(buffer);
-                            }
-                            huffman.structureHuffmanTree();
-                            while (bufferedInputStream.read(buffer) != -1) {
-                                //文件为空时
-                                if (len == 0) {
-                                    break;
-                                }
                                 bufferedOutputStream.write(huffman.huffmanDecoding(buffer));
-                                bufferedOutputStream.flush();
                             }
+                            bufferedOutputStream.flush();
                             bufferedOutputStream.close();
                             bufferedInputStream.close();
                         } catch (IOException e) {

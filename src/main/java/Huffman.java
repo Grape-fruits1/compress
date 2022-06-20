@@ -1,5 +1,3 @@
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -157,16 +155,13 @@ public class Huffman {
                         outputCodeByte.add((byte) 0);
                     }
                     if (outputCode.get(charNum) == 0) {
-                        outputCodeByte.set(charNum / 8 + 8 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) & (~(0x1 << (7 - (charNum % 8))))));
+                        outputCodeByte.set(charNum / 8 + 5 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) & (~(0x1 << (7 - (charNum % 8))))));
                     } else {
-                        outputCodeByte.set(charNum / 8 + 8 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) | (0x1 << (7 - (charNum % 8)))));
+                        outputCodeByte.set(charNum / 8 + 5 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) | (0x1 << (7 - (charNum % 8)))));
                     }
                 }
                 //前4个字节指示空余位数
-                outputCodeByte.set(mapSize + 4, (byte) (((7 - (charNum % 8)) >> 24) & 0xFF));
-                outputCodeByte.set(mapSize + 5, (byte) (((7 - (charNum % 8)) >> 16) & 0xFF));
-                outputCodeByte.set(mapSize + 6, (byte) (((7 - (charNum % 8)) >> 8) & 0xFF));
-                outputCodeByte.set(mapSize + 7, (byte) ((7 - (charNum % 8)) & 0xFF));
+                outputCodeByte.set(mapSize + 4, (byte) (7 - (charNum % 8)));
                 //包装类List转基本类型原生数组
                 Byte[] outputCodeArray = new Byte[outputCodeByte.size()];
                 outputCodeArray = outputCodeByte.toArray(outputCodeArray);
@@ -203,8 +198,51 @@ public class Huffman {
         }
         return new byte[0];
     }
-    public byte[] huffmanDecoding(byte[] buffer) {
 
-        return new byte[0];
+    /**
+     * 进行解码
+     * @param buffer
+     * @return
+     */
+    public byte[] huffmanDecoding(byte[] buffer) {
+        HuffmanTree leafNode = mainTree;
+        ArrayList<Byte> bitsArraylist = new ArrayList<>();
+        ArrayList<Byte> file = new ArrayList<>();
+        //获取编码尾部空位比特数
+        byte gapBitsNumByte = buffer[0];
+        for (int i = 1; i < buffer.length; i++) {
+            for (int j = 0; j < 8; j++) {
+                bitsArraylist.add((byte) ((buffer[i] >> (7 - j)) & 0x1));
+            }
+        }
+        for (Byte code : bitsArraylist) {
+            if (leafNode.leftSubtree == null && leafNode.rightSubtree == null) {
+                file.add(leafNode.data);
+                leafNode = mainTree;
+            }
+            if (code == 1) {
+                leafNode = leafNode.rightSubtree;
+            } else {
+                leafNode = leafNode.leftSubtree;
+            }
+        }
+        for (int i = 0; i < gapBitsNumByte; i++) {
+            if (leafNode.leftSubtree == null && leafNode.rightSubtree == null) {
+                file.remove(file.size() - 1);
+                leafNode = mainTree;
+            }
+            if (bitsArraylist.get(bitsArraylist.size() - 1 - gapBitsNumByte + i) == 1) {
+                leafNode = leafNode.rightSubtree;
+            } else {
+                leafNode = leafNode.leftSubtree;
+            }
+        }
+        Byte[] bitsArray = new Byte[file.size()];
+        bitsArray = file.toArray(bitsArray);
+        byte[] bitsArrays = new byte[file.size()];
+        for (int i = 0; i < bitsArrays.length; i++) {
+            bitsArrays[i] = bitsArray[i];
+        }
+        return bitsArrays;
     }
 }
