@@ -45,7 +45,15 @@ public class Compression {
                             if (len == 0) {
                                 break;
                             }
-                            bufferedOutputStream.write(huffman.huffmanEncoding(buffer));
+                        }
+                        byte[] code = huffman.huffmanEncoding(buffer);
+                        bufferedOutputStream.write(code);
+                        bufferedOutputStream.flush();
+                        /**
+                         * 调试用
+                         */
+                        for (byte b : code) {
+                            System.out.println(b);
                         }
                         bufferedOutputStream.close();
                         bufferedInputStream.close();
@@ -70,6 +78,13 @@ public class Compression {
                             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
                             byte[] buffer = new byte[100];
                             Huffman huffman = new Huffman();
+                            //获取频率表大小
+                            int[] mapNumByte = new int[4];
+                            mapNumByte[0] = bufferedInputStream.read();
+                            mapNumByte[1] = bufferedInputStream.read();
+                            mapNumByte[2] = bufferedInputStream.read();
+                            mapNumByte[3] = bufferedInputStream.read();
+                            double mapNum = FileUtil.unsignedByteToInt(mapNumByte);
                             int len;
                             while ((len = bufferedInputStream.read(buffer)) != -1) {
                                 //文件为空时
@@ -85,6 +100,7 @@ public class Compression {
                                     break;
                                 }
                                 bufferedOutputStream.write(huffman.huffmanDecoding(buffer));
+                                bufferedOutputStream.flush();
                             }
                             bufferedOutputStream.close();
                             bufferedInputStream.close();

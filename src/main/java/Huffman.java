@@ -1,3 +1,5 @@
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -98,7 +100,7 @@ public class Huffman {
         mainTree = forest.get(0);
         forest.remove(0);
         if (forest.size() > 0) {
-            for (int i = 0; i < forest.size() - 1; i++) {
+            while (forest.size() > 1) {
                 if (mainTree.freq < forest.get(1).freq) {
                     mainTree = new HuffmanTree(mainTree, forest.get(0));
                     forest.remove(0);
@@ -123,39 +125,61 @@ public class Huffman {
         //最终输出的不定长码文
         List<Byte> outputCodeByte = new ArrayList<>();
         outputCode.add((byte) 1);
+
+        /**
+         * 记得判断满数组时情况
+         */
+
         for (byte b : buffer) {
             //读到文件末位
             if (b == -1) {
-                int i;
-                outputCodeByte.set(4, (byte) 0);
-                for (i = 0; i < outputCode.size(); i++) {
-                    if ((i / 8 - (i - 1) / 8) == 1) {
-                        outputCodeByte.set(i / 8 + 4, (byte) 0);
+                //存入频率表及控制信息
+                int mapSize = frequency.size() * 5;
+                outputCodeByte.add((byte) (((mapSize) >> 24) & 0xFF));
+                outputCodeByte.add((byte) (((mapSize) >> 16) & 0xFF));
+                outputCodeByte.add((byte) (((mapSize) >> 8) & 0xFF));
+                outputCodeByte.add((byte) ((mapSize) & 0xFF));
+                for (Map.Entry<Byte, Integer> entry : frequency.entrySet()) {
+                    outputCodeByte.add(entry.getKey());
+                    outputCodeByte.add((byte) (((entry.getValue()) >> 24) & 0xFF));
+                    outputCodeByte.add((byte) (((entry.getValue()) >> 16) & 0xFF));
+                    outputCodeByte.add((byte) (((entry.getValue()) >> 8) & 0xFF));
+                    outputCodeByte.add((byte) ((entry.getValue()) & 0xFF));
+                }
+                outputCodeByte.add((byte) 0);
+                outputCodeByte.add((byte) 0);
+                outputCodeByte.add((byte) 0);
+                outputCodeByte.add((byte) 0);
+                outputCodeByte.add((byte) 0);
+                int charNum = 0;
+                for (; charNum < outputCode.size(); charNum++) {
+                    if ((charNum / 8 - (charNum - 1) / 8) == 1) {
+                        outputCodeByte.add((byte) 0);
                     }
-                    if (outputCode.get(i) == 0) {
-                        outputCodeByte.set(i / 8 + 4, (byte) (outputCodeByte.get(i / 8 + 4) & (~(0x1 << (7 - (i % 8))))));
+                    if (outputCode.get(charNum) == 0) {
+                        outputCodeByte.set(charNum / 8 + 8 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) & (~(0x1 << (7 - (charNum % 8))))));
                     } else {
-                        outputCodeByte.set(i / 8 + 4, (byte) (outputCodeByte.get(i / 8 + 4) | (0x1 << (7 - (i % 8)))));
+                        outputCodeByte.set(charNum / 8 + 8 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) | (0x1 << (7 - (charNum % 8)))));
                     }
                 }
                 //前4个字节指示空余位数
-                outputCodeByte.set(0, (byte) (((7 - (i % 8)) >> 24) & 0xFF));
-                outputCodeByte.set(1, (byte) (((7 - (i % 8)) >> 16) & 0xFF));
-                outputCodeByte.set(2, (byte) (((7 - (i % 8)) >> 8) & 0xFF));
-                outputCodeByte.set(3, (byte) ((7 - (i % 8)) & 0xFF));
+                outputCodeByte.set(mapSize + 4, (byte) (((7 - (charNum % 8)) >> 24) & 0xFF));
+                outputCodeByte.set(mapSize + 5, (byte) (((7 - (charNum % 8)) >> 16) & 0xFF));
+                outputCodeByte.set(mapSize + 6, (byte) (((7 - (charNum % 8)) >> 8) & 0xFF));
+                outputCodeByte.set(mapSize + 7, (byte) ((7 - (charNum % 8)) & 0xFF));
                 //包装类List转基本类型原生数组
                 Byte[] outputCodeArray = new Byte[outputCodeByte.size()];
                 outputCodeArray = outputCodeByte.toArray(outputCodeArray);
                 byte[] outputCodeArrays = new byte[outputCodeByte.size()];
-                for (int j = 0; j < outputCodeArray.length; j++) {
-                    outputCodeArrays[j] = outputCodeArray[j];
+                for (int i = 0; i < outputCodeArray.length; i++) {
+                    outputCodeArrays[i] = outputCodeArray[i];
                 }
                 return outputCodeArrays;
             }
+            Stack<Byte> code = new Stack<>();
             //广度优先遍历找到字符并回溯产生哈夫曼编码
-            while (nowNode != null) {
-                Stack<Byte> code = new Stack<>();
-                if (nowNode.data == b) {
+            while (!treeQueue.isEmpty()) {
+                if (nowNode.data != null && nowNode.data == b) {
                     HuffmanTree backtrackingNode = nowNode;
                     while (backtrackingNode.parentNode != null) {
                         if (backtrackingNode.parentNode.leftSubtree == backtrackingNode) {
@@ -180,6 +204,7 @@ public class Huffman {
         return new byte[0];
     }
     public byte[] huffmanDecoding(byte[] buffer) {
+
         return new byte[0];
     }
 }
