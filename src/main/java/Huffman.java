@@ -116,19 +116,17 @@ public class Huffman {
      */
     public byte[] huffmanEncoding(byte[] buffer) {
         Queue<HuffmanTree> treeQueue = new LinkedList<>();
-        HuffmanTree nowNode = mainTree.rightSubtree;
-        treeQueue.add(nowNode);
-        treeQueue.add(mainTree.leftSubtree);
+        HuffmanTree nowNode;
         List<Byte> outputCode = new ArrayList<>();
         //最终输出的不定长码文
         List<Byte> outputCodeByte = new ArrayList<>();
-        outputCode.add((byte) 1);
 
         /**
          * 记得判断满数组时情况
          */
 
         for (byte b : buffer) {
+            Stack<Byte> code = new Stack<>();
             //读到文件末位
             if (b == -1) {
                 //存入频率表及控制信息
@@ -146,22 +144,19 @@ public class Huffman {
                 }
                 outputCodeByte.add((byte) 0);
                 outputCodeByte.add((byte) 0);
-                outputCodeByte.add((byte) 0);
-                outputCodeByte.add((byte) 0);
-                outputCodeByte.add((byte) 0);
                 int charNum = 0;
                 for (; charNum < outputCode.size(); charNum++) {
                     if ((charNum / 8 - (charNum - 1) / 8) == 1) {
                         outputCodeByte.add((byte) 0);
                     }
                     if (outputCode.get(charNum) == 0) {
-                        outputCodeByte.set(charNum / 8 + 5 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) & (~(0x1 << (7 - (charNum % 8))))));
+                        outputCodeByte.set(charNum / 8 + 5 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 5 + mapSize) & (~(0x1 << (7 - (charNum % 8))))));
                     } else {
-                        outputCodeByte.set(charNum / 8 + 5 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 4) | (0x1 << (7 - (charNum % 8)))));
+                        outputCodeByte.set(charNum / 8 + 5 + mapSize, (byte) (outputCodeByte.get(charNum / 8 + 5 + mapSize) | (0x1 << (7 - (charNum % 8)))));
                     }
                 }
-                //前4个字节指示空余位数
-                outputCodeByte.set(mapSize + 4, (byte) (7 - (charNum % 8)));
+                //第1个字节指示空余位数
+                outputCodeByte.set(mapSize + 4, (byte) (8 - (charNum % 8)));
                 //包装类List转基本类型原生数组
                 Byte[] outputCodeArray = new Byte[outputCodeByte.size()];
                 outputCodeArray = outputCodeByte.toArray(outputCodeArray);
@@ -171,7 +166,9 @@ public class Huffman {
                 }
                 return outputCodeArrays;
             }
-            Stack<Byte> code = new Stack<>();
+            nowNode = mainTree.rightSubtree;
+            treeQueue.add(nowNode);
+            treeQueue.add(mainTree.leftSubtree);
             //广度优先遍历找到字符并回溯产生哈夫曼编码
             while (!treeQueue.isEmpty()) {
                 if (nowNode.data != null && nowNode.data == b) {
@@ -187,6 +184,7 @@ public class Huffman {
                     while (!code.empty()) {
                         outputCode.add(code.pop());
                     }
+                    break;
                 }
                 if (nowNode.rightSubtree != null && nowNode.leftSubtree != null) {
                     treeQueue.offer(nowNode.rightSubtree);
@@ -211,8 +209,13 @@ public class Huffman {
         //获取编码尾部空位比特数
         byte gapBitsNumByte = buffer[0];
         for (int i = 1; i < buffer.length; i++) {
-            for (int j = 0; j < 8; j++) {
-                bitsArraylist.add((byte) ((buffer[i] >> (7 - j)) & 0x1));
+            //读到文件末位
+            if (buffer[i] != -1) {
+                for (int j = 0; j < 8; j++) {
+                    bitsArraylist.add((byte) ((buffer[i] >> (7 - j)) & 0x1));
+                }
+            } else {
+                break;
             }
         }
         for (Byte code : bitsArraylist) {

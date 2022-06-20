@@ -72,7 +72,7 @@ public class Compression {
                 String fileName = scan.next();
                 File inputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + fileName);
                 if (fileName.endsWith(".jaycomp") && inputFile.exists()) {
-                    String outputFileName = fileName.substring(0,fileName.length() - 8);
+                    String outputFileName = fileName.substring(0, fileName.length() - 8);
                     File outputFile = new File("D:\\workspace_jdea\\compress\\src\\main\\resources\\" + outputFileName);
                     if (!outputFile.exists()) {
                         try {
@@ -80,6 +80,7 @@ public class Compression {
                             BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(inputFile));
                             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
                             byte[] buffer = new byte[100];
+                            Arrays.fill(buffer, (byte) -1);
                             Huffman huffman = new Huffman();
                             //获取频率表大小
                             int[] mapNumByte = new int[4];
@@ -87,7 +88,7 @@ public class Compression {
                             mapNumByte[1] = bufferedInputStream.read();
                             mapNumByte[2] = bufferedInputStream.read();
                             mapNumByte[3] = bufferedInputStream.read();
-                            long mapNum = FileUtil.unsignedByteToInt(mapNumByte);
+                            long mapNum = FileUtil.unsignedByteToInt(mapNumByte) / 5;
                             //读取频率表
                             for (int i = 0; i < mapNum; i++) {
                                 byte key = (byte) bufferedInputStream.read();
